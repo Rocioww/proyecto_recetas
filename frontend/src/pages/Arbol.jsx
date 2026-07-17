@@ -41,6 +41,14 @@ let etiquetasRelacion = {
     hermano : "Añadir Hermano/a",
 }
 
+let titulosFormulario = {
+    progenitor : "Añadir progenitor",
+    pareja : "Añadir pareja",
+    descendiente : "Añadir hijo/a",
+    hermano : "Añadir hermano/a",
+    rellenar : "Añadir familiar",
+}
+
 function iniciales(nombre){
     if(!nombre) return "?"
     let partes = nombre.trim().split(" ")
@@ -497,7 +505,7 @@ function Arbol(){
     }
 
     function renderFormulario(){
-        return  <form onSubmit={manejarEnviar} className="flex flex-col gap-2.5">
+        return  <form onSubmit={manejarEnviar} className="flex flex-col gap-3">
                     <label className="flex flex-col gap-1 text-xs text-black">
                         Nombre
                         <input
@@ -505,7 +513,7 @@ function Arbol(){
                             value={nombreNuevo}
                             onChange={ evento => setNombreNuevo(evento.target.value) }
                             placeholder="Nombre del familiar"
-                            className="border border-grey/40 rounded px-2 py-1.5 bg-form text-sm text-secondary focus:outline-none focus:border-accent"
+                            className="border border-grey/40 rounded px-3 py-2 bg-form text-sm text-secondary focus:outline-none focus:border-accent"
                             autoFocus
                         />
                     </label>
@@ -528,17 +536,14 @@ function Arbol(){
                         <SelectorFecha value={fechaNueva} onChange={setFechaNueva} />
                     </label>
                     {
-                        errorForm ? <p className="text-red-600 text-xs">Revisa el nombre</p> : null
+                        errorForm ? <p className="text-red-600 text-sm">Revisa el nombre</p> : null
                     }
-                    <div className="flex gap-2">
-                        <input
-                            type="submit"
-                            value={enviando ? "Creando…" : "Crear"}
-                            disabled={enviando}
-                            className="flex-1 bg-accent text-primary text-xs rounded px-2 py-1.5 uppercase tracking-wide cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                        />
-                        <button type="button" onClick={cerrarPopover} disabled={enviando} className="text-xs text-grey px-2">Cancelar</button>
-                    </div>
+                    <input
+                        type="submit"
+                        value={enviando ? "Creando…" : "Crear"}
+                        disabled={enviando}
+                        className="bg-accent text-primary uppercase tracking-wide text-sm rounded px-4 py-2 cursor-pointer hover:opacity-90 disabled:opacity-60"
+                    />
                 </form>
     }
 
@@ -670,16 +675,6 @@ function Arbol(){
                         <p className="text-xs text-grey">{ghost.etiqueta}</p>
                         <span className="text-lg text-grey leading-none mt-1">+</span>
                     </div>
-
-                    {
-                        popoverAbierto === idGhost &&
-                        <div
-                            ref={ nodo => nodo && nodo.scrollIntoView({ block : "nearest", inline : "nearest", behavior : "smooth" }) }
-                            className="absolute top-full mt-1 left-0 bg-white rounded-xl shadow-lg p-3 w-52 z-10"
-                        >
-                            {renderFormulario()}
-                        </div>
-                    }
                 </div>
     }
 
@@ -844,36 +839,27 @@ function Arbol(){
                                             }
 
                                             {
-                                                popoverAbierto === miembro._id &&
+                                                popoverAbierto === miembro._id && paso === "menu" &&
                                                 <div
                                                     ref={ nodo => nodo && nodo.scrollIntoView({ block : "nearest", inline : "nearest", behavior : "smooth" }) }
                                                     className="absolute top-full mt-1 left-0 bg-white rounded-xl shadow-lg p-3 w-52 z-10"
                                                 >
-
-                                                    {
-                                                        paso === "menu" &&
-                                                        <div className="flex flex-col gap-1">
-                                                            {
-                                                                Object.entries(etiquetasRelacion)
-                                                                .filter( ([clave]) => clave !== "progenitor" || progenitoresDe(miembro).length < 2 )
-                                                                .filter( ([clave]) => clave !== "pareja" || !parejaDeMiembro(miembro) )
-                                                                .map( ([clave,etiqueta]) =>
-                                                                    <button
-                                                                        key={clave}
-                                                                        onClick={ () => elegirRelacion(clave, miembro) }
-                                                                        className="text-left text-sm px-2 py-1.5 rounded hover:bg-primary"
-                                                                    >
-                                                                        + {etiqueta}
-                                                                    </button>
-                                                                )
-                                                            }
-                                                        </div>
-                                                    }
-
-                                                    {
-                                                        paso === "form" && renderFormulario()
-                                                    }
-
+                                                    <div className="flex flex-col gap-1">
+                                                        {
+                                                            Object.entries(etiquetasRelacion)
+                                                            .filter( ([clave]) => clave !== "progenitor" || progenitoresDe(miembro).length < 2 )
+                                                            .filter( ([clave]) => clave !== "pareja" || !parejaDeMiembro(miembro) )
+                                                            .map( ([clave,etiqueta]) =>
+                                                                <button
+                                                                    key={clave}
+                                                                    onClick={ () => elegirRelacion(clave, miembro) }
+                                                                    className="text-left text-sm px-2 py-1.5 rounded hover:bg-primary"
+                                                                >
+                                                                    + {etiqueta}
+                                                                </button>
+                                                            )
+                                                        }
+                                                    </div>
                                                 </div>
                                             }
 
@@ -1051,6 +1037,14 @@ function Arbol(){
                     onActualizado={manejarMiembroActualizado}
                     onBorrar={manejarBorrarMiembroDesdeArbol}
                 />
+            }
+
+            {
+                popoverAbierto && paso === "form" &&
+                <Modal onCerrar={cerrarPopover}>
+                    <h2 className="font-display text-[1.425rem] font-semibold">{(envio && titulosFormulario[envio.relacion]) || "Añadir familiar"}</h2>
+                    {renderFormulario()}
+                </Modal>
             }
         </div>
 }
