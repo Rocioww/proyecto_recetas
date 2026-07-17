@@ -1,3 +1,5 @@
+import { useState } from "react"
+
 const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]
 
 // nº de días del mes indicado; si falta año o mes, se asume el máximo (31)
@@ -12,9 +14,21 @@ function diasEnMes(anio,mes){
 // Se usa en vez del selector nativo porque para fechas de nacimiento lejanas
 // obliga a retroceder mes a mes (o año a año) muy despacio; con tres <select>
 // se puede escribir el año directamente y saltar al momento.
+//
+// día/mes/año se guardan en estado propio (no solo derivados de "value"):
+// mientras el usuario no ha elegido los tres, "value" hacia fuera es "" y
+// si derivásemos directamente de ahí, cada selección parcial se borraría
+// sola en el siguiente render. Solo cuando los tres campos están completos
+// se emite la fecha; hasta entonces cada elección se queda guardada aquí.
+// El valor inicial solo se lee de "value" al montar: en los dos sitios
+// donde se usa este componente, el formulario entero se monta de cero
+// cada vez que se abre, así que no hace falta resincronizar más tarde.
 function SelectorFecha({ value, onChange, className = "" }){
 
-    let [anio,mes,dia] = value ? value.split("-").map(Number) : [null,null,null]
+    let inicial = value ? value.split("-").map(Number) : [null,null,null]
+    let [anio,setAnio] = useState(inicial[0] || null)
+    let [mes,setMes] = useState(inicial[1] || null)
+    let [dia,setDia] = useState(inicial[2] || null)
 
     let anioActual = new Date().getFullYear()
     let anios = []
@@ -23,8 +37,12 @@ function SelectorFecha({ value, onChange, className = "" }){
     let dias = Array.from({ length : diasEnMes(anio,mes) },(_,i) => i + 1)
 
     function emitir(nuevoAnio,nuevoMes,nuevoDia){
-        if(!nuevoAnio || !nuevoMes || !nuevoDia) return onChange("")
-        onChange(`${nuevoAnio}-${String(nuevoMes).padStart(2,"0")}-${String(nuevoDia).padStart(2,"0")}`)
+        setAnio(nuevoAnio)
+        setMes(nuevoMes)
+        setDia(nuevoDia)
+        onChange((nuevoAnio && nuevoMes && nuevoDia)
+            ? `${nuevoAnio}-${String(nuevoMes).padStart(2,"0")}-${String(nuevoDia).padStart(2,"0")}`
+            : "")
     }
 
     return  <div className={`flex gap-2 ${className}`}>
