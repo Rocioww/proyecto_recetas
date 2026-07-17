@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@font-face {
+    font-family: "TC Jimmy Serif Pro";
+    src: url("./fonts/TC Jimmy Serif Pro Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@theme {
+    /* breakpoint del cambio header/menú de app: 992px en vez del lg por defecto */
+    --breakpoint-lg: 992px;
+
+    --color-primary: #f6efe3;
+    --color-secondary: #3b2a1e;
+    --color-accent: #A13A27;
+    --color-accent2: #c99a3e;
+    --color-accent3: #6b4a3a;
+    --color-grey: #937C64;
+    --color-form: #FFFAF1;
+
+    /* 0.85rem en vez del 0.75rem de Tailwind; el line-height se recalcula para
+       que la altura de línea en píxeles no cambie (mismo alto de campos/píldoras
+       que antes, solo crece el tamaño de letra) */
+    --text-xs: 0.85rem;
+    --text-xs--line-height: calc(1 / 0.85);
+
+    --font-display: "TC Jimmy Serif Pro", serif;
+    --font-body: "Montserrat", sans-serif;
+}
+
+@layer base {
+    body {
+        @apply bg-primary text-secondary font-body relative;
+        isolation: isolate;
+    }
+
+    h1, h2, h3 {
+        @apply font-display;
+    }
+
+    ::placeholder {
+        color: var(--color-grey);
+        opacity: 1;
+    }
+
+    /* por defecto los navegadores NO ponen cursor:pointer en <button> ni en
+       inputs de radio/checkbox/submit: se fuerza aquí para todo lo clicable
+       de forma nativa, en vez de repetir "cursor-pointer" por componente */
+    button:not(:disabled),
+    [role="button"],
+    input[type="radio"]:not(:disabled),
+    input[type="checkbox"]:not(:disabled),
+    input[type="submit"]:not(:disabled),
+    input[type="button"]:not(:disabled),
+    label:has(> input[type="radio"]),
+    label:has(> input[type="checkbox"]),
+    select:not(:disabled),
+    summary {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    input:disabled {
+        cursor: not-allowed;
+    }
+}
+
+/* imagen de fondo global, decorativa: fija, detrás de todo el contenido,
+   no interactiva ni accesible (pseudo-elemento sin rol ni texto) */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url("./assets/background.jpg") center / cover no-repeat;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* oculta la barra de scroll manteniendo el desplazamiento (árbol, filas de
+   píldoras). Fuera de @layer y con !important para ganar a cualquier capa. */
+.sin-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+.sin-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* toast: aparición suave */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* toast: desaparición suave hacia abajo (tipo notificación de móvil) */
+@keyframes fadeOut {
+    from { opacity: 1; transform: translate(-50%, 0); }
+    to   { opacity: 0; transform: translate(-50%, 16px); }
+}
