@@ -831,7 +831,7 @@ function Arbol(){
                                                         <div className="w-full h-1/2 shrink-0 bg-accent2/20 flex items-center justify-center">
                                                             {
                                                                 miembro.foto
-                                                                ? <img src={urlFoto(miembro.foto)} alt="" className="w-full h-full object-cover" />
+                                                                ? <img src={urlFoto(miembro.foto)} alt="" draggable="false" className="w-full h-full object-cover" />
                                                                 : <div className={`w-full h-full flex items-center justify-center leading-none text-primary text-2xl font-semibold ${coloresAvatar[i % coloresAvatar.length]}`}>
                                                                         {iniciales(miembro.nombreReal)}
                                                                     </div>
