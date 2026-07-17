@@ -31,7 +31,7 @@ function SelectorFecha({ value, onChange, className = "" }){
                 <select
                     value={dia || ""}
                     onChange={ evento => emitir(anio,mes,evento.target.value ? Number(evento.target.value) : null) }
-                    className="border border-grey/40 rounded px-2 py-2 bg-form text-sm text-secondary focus:outline-none focus:border-accent"
+                    className="w-16 min-w-0 border border-grey/40 rounded px-2 py-2 bg-form text-sm text-secondary focus:outline-none focus:border-accent"
                 >
                     <option value="">Día</option>
                     { dias.map( d => <option key={d} value={d}>{d}</option> ) }
@@ -42,7 +42,7 @@ function SelectorFecha({ value, onChange, className = "" }){
                         let nuevoMes = evento.target.value ? Number(evento.target.value) : null
                         emitir(anio,nuevoMes, dia ? Math.min(dia,diasEnMes(anio,nuevoMes)) : dia)
                     } }
-                    className="flex-1 border border-grey/40 rounded px-2 py-2 bg-form text-sm text-secondary capitalize focus:outline-none focus:border-accent"
+                    className="flex-1 min-w-0 border border-grey/40 rounded px-2 py-2 bg-form text-sm text-secondary capitalize focus:outline-none focus:border-accent"
                 >
                     <option value="">Mes</option>
                     { meses.map( (nombre,i) => <option key={i} value={i + 1}>{nombre}</option> ) }
@@ -53,7 +53,7 @@ function SelectorFecha({ value, onChange, className = "" }){
                         let nuevoAnio = evento.target.value ? Number(evento.target.value) : null
                         emitir(nuevoAnio,mes, dia ? Math.min(dia,diasEnMes(nuevoAnio,mes)) : dia)
                     } }
-                    className="border border-grey/40 rounded px-2 py-2 bg-form text-sm text-secondary focus:outline-none focus:border-accent"
+                    className="w-20 min-w-0 border border-grey/40 rounded px-2 py-2 bg-form text-sm text-secondary focus:outline-none focus:border-accent"
                 >
                     <option value="">Año</option>
                     { anios.map( a => <option key={a} value={a}>{a}</option> ) }

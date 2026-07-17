@@ -504,7 +504,8 @@ function Arbol(){
                             type="text"
                             value={nombreNuevo}
                             onChange={ evento => setNombreNuevo(evento.target.value) }
-                            className="border border-grey/40 rounded px-2 py-1.5 text-sm text-secondary focus:outline-none focus:border-accent"
+                            placeholder="Nombre del familiar"
+                            className="border border-grey/40 rounded px-2 py-1.5 bg-form text-sm text-secondary focus:outline-none focus:border-accent"
                             autoFocus
                         />
                     </label>
