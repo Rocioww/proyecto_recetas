@@ -198,11 +198,27 @@ function Arbol(){
     let [errorForm,setErrorForm] = useState(false)
     let [enviando,setEnviando] = useState(false)
 
+    let popoverMenuRef = useRef(null)
+    // se centra en pantalla UNA vez al abrirse el popover, no en cada
+    // render: con un ref-callback inline (nueva función cada render) esto
+    // se disparaba de nuevo en cada re-render mientras estaba abierto,
+    // y el scroll "smooth" competía con cualquier scroll manual del usuario
+    useEffect(() => {
+        if(popoverAbierto && paso === "menu" && popoverMenuRef.current){
+            popoverMenuRef.current.scrollIntoView({ block : "nearest", inline : "nearest", behavior : "smooth" })
+        }
+    },[popoverAbierto, paso])
+
     // --- arrastre del lienzo con el ratón ---
     let contenedorRef = useRef(null)
     let yaCentrado = useRef(false)
     let arrastrando = useRef(false)
     let inicioArrastre = useRef({ x:0, y:0, scrollX:0, scrollY:0 })
+    // true si el mousedown actual se movió más que un pequeño umbral: sirve
+    // para distinguir un arrastre real de un simple clic (las cards son
+    // <Link>, así que un arrastre que empieza/termina sobre una no debe
+    // navegar) sin bloquear por completo el arrastre sobre ellas
+    let seArrastro = useRef(false)
 
     // --- zoom del árbol ---
     let [zoom,setZoom] = useState(1)
@@ -341,11 +357,14 @@ function Arbol(){
     },[miembros])
 
     function iniciarArrastre(evento){
-        // si el clic empieza sobre un botón/input/formulario, no es arrastre
-        if(evento.target.closest("button, input, a, form")) return
+        // si el clic empieza sobre un botón/input/formulario, no es arrastre;
+        // las cards SÍ pueden arrastrarse (son <Link>: ver manejarClicTrasArrastre,
+        // que evita que un arrastre real termine navegando)
+        if(evento.target.closest("button, input, form")) return
         // clic en el fondo: cierra cualquier popover abierto
         cerrarPopover()
         arrastrando.current = true
+        seArrastro.current = false
         inicioArrastre.current = {
             x : evento.clientX,
             y : evento.clientY,
@@ -354,11 +373,24 @@ function Arbol(){
         }
     }
 
+    // si el arrastre se movió de verdad, evita que el clic que sigue al
+    // soltar navegue por la card (<Link>) o dispare el onClick de un
+    // fantasma/placeholder sobre el que se soltó; va en fase de captura
+    // para llegar antes que esos manejadores
+    function manejarClicTrasArrastre(evento){
+        if(seArrastro.current){
+            evento.preventDefault()
+            evento.stopPropagation()
+            seArrastro.current = false
+        }
+    }
+
     useEffect(() => {
         function mover(evento){
             if(!arrastrando.current) return
             let dx = evento.clientX - inicioArrastre.current.x
             let dy = evento.clientY - inicioArrastre.current.y
+            if(Math.abs(dx) > 5 || Math.abs(dy) > 5) seArrastro.current = true
             contenedorRef.current.scrollLeft = inicioArrastre.current.scrollX - dx
             contenedorRef.current.scrollTop = inicioArrastre.current.scrollY - dy
         }
@@ -731,6 +763,7 @@ function Arbol(){
                 <div
                     ref={asignarContenedor}
                     onMouseDown={iniciarArrastre}
+                    onClickCapture={manejarClicTrasArrastre}
                     onWheel={manejarRuedaZoom}
                     className={`flex-1 overflow-auto sin-scrollbar cursor-grab active:cursor-grabbing select-none ${vista === "arbol" ? "" : "hidden"}`}
                 >
@@ -841,8 +874,8 @@ function Arbol(){
                                             {
                                                 popoverAbierto === miembro._id && paso === "menu" &&
                                                 <div
-                                                    ref={ nodo => nodo && nodo.scrollIntoView({ block : "nearest", inline : "nearest", behavior : "smooth" }) }
-                                                    className="absolute top-full mt-1 left-0 bg-white rounded-xl shadow-lg p-3 w-52 z-10"
+                                                    ref={popoverMenuRef}
+                                                    className="absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg p-3 w-52 z-10"
                                                 >
                                                     <div className="flex flex-col gap-1">
                                                         {
