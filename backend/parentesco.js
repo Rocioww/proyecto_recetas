@@ -100,44 +100,17 @@ export function calcularParentescoConsanguineo(arriba, abajo, genero) {
         : `${nombrePrimo} (${diferencia} generación${diferencia > 1 ? "es" : ""} de diferencia)`;
 }
 
-// pareja de un pariente de sangre -> parentesco político.
-// Se indexa por CATEGORÍA (posición arriba/abajo de la referencia), no por
-// la palabra exacta, porque el término depende del género de la propia
-// pareja, no del de la persona de referencia (p.ej. "nuera" es la esposa
-// de tu hijo O de tu hija, indistintamente).
-const politicosPorCategoria = {
-    yo:         ["pareja", "pareja", "pareja"], // ya no distinguimos por género aquí
-    progenitor: ["padrastro", "madrastra", "padrastrx"],
-    hijo:       ["yerno", "nuera", "yernx"],
-    hermano:    ["cuñado", "cuñada", "cuñadx"],
-    tio:        ["tío político", "tía política", "tíx políticx"],
-};
-
+// pareja de un pariente de sangre: por decisión de producto ya no se
+// distinguen los términos políticos (padrastro/madrastra, yerno/nuera,
+// cuñado/cuñada, tío político...) - toda pareja de un familiar se nombra
+// directamente con el término de sangre equivalente en esa misma posición
+// (la pareja de tu madre es "padre" o "madre", la de tu hijo es "hijo/a",
+// etc.), como si fuera un familiar más. La única excepción es la propia
+// pareja de "yo" (arriba=0, abajo=0), que no tiene equivalente de sangre.
 export function nombrePolitico(referencia, generoDeLaPareja) {
     const { arriba, abajo } = referencia;
-    const i = idxGenero(generoDeLaPareja);
-
-    if (arriba === 0 && abajo === 0) return politicosPorCategoria.yo[i];
-    if (arriba === 1 && abajo === 0) return politicosPorCategoria.progenitor[i];
-    if (arriba === 0 && abajo === 1) return politicosPorCategoria.hijo[i];
-    if (arriba === 1 && abajo === 1) return politicosPorCategoria.hermano[i];
-
-    // pareja de un abuelo, bisabuelo, tatarabuelo... (abajo === 0): en
-    // español no hay un término político distinto ("padrastro" ya cubre
-    // solo el nivel de padre/madre), así que se nombra igual que si lo
-    // fuera de sangre (la pareja del abuelo es, sencillamente, "abuela")
-    if (abajo === 0 && arriba >= 2) return nombreDirectoAscendente(arriba, generoDeLaPareja);
-
-    // pareja de un tío / tío abuelo / tío bisabuelo...
-    if (abajo === 1 && arriba > 1) {
-        const base = politicosPorCategoria.tio[i];
-        if (arriba === 2) return base;
-        return `${base} ${nombreDirectoAscendente(arriba - 1, generoDeLaPareja)}`;
-    }
-
-    // cualquier otro caso (pareja de una prima segunda, de un sobrino...):
-    // fórmula genérica, siempre válida sea cual sea el género
-    return `pareja de ${referencia.parentesco}`;
+    if (arriba === 0 && abajo === 0) return "pareja";
+    return calcularParentescoConsanguineo(arriba, abajo, generoDeLaPareja);
 }
 
 // --- composición: a partir de la posición (arriba,abajo) de una persona
