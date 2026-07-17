@@ -2459,6 +2459,73 @@ servidor.post("/recetas/:idReceta/fotos", (peticion, respuesta, siguiente) => {
     });
 });
 
+// quita una foto ya guardada de la receta (y la borra de Cloudinary). Si
+// era la portada, la portada pasa a ser la primera foto que quede (o null).
+servidor.delete("/recetas/:idReceta/fotos", async (peticion, respuesta, siguiente) => {
+    try {
+        const { idReceta } = peticion.params;
+        if (!/^[0-9a-f]{24}$/.test(idReceta)) return siguiente(true);
+
+        const { foto } = peticion.body;
+        if (typeof foto !== "string" || !foto) return siguiente(true);
+
+        const receta = await buscarRecetaPorId(idReceta);
+        if (!receta) return siguiente();
+
+        const acceso = await requiereAccesoFamilia(peticion, respuesta, receta.familia);
+        if (!acceso) return;
+        if (!acceso.fam) return siguiente();
+
+        if (!(await puedeModificarReceta(receta, peticion.idUsuario))) {
+            return respuesta.sendStatus(403);
+        }
+
+        const fotos = (receta.fotos || []).filter(f => f !== foto);
+        const portada = receta.portada === foto ? (fotos[0] || null) : (receta.portada || null);
+
+        await actualizarReceta(idReceta, { fotos, portada });
+        borrarArchivoFoto(foto);
+
+        respuesta.json({ fotos, portada });
+    } catch (e) {
+        console.log(e);
+        respuesta.status(500).json({ error: "error en el servidor" });
+    }
+});
+
+// cambia la portada de la receta a una foto que ya estaba guardada (debe
+// estar dentro de "fotos"; para portada = una recién subida se usa
+// "portadaIndice" en POST /recetas/:idReceta/fotos)
+servidor.put("/recetas/:idReceta/portada", async (peticion, respuesta, siguiente) => {
+    try {
+        const { idReceta } = peticion.params;
+        if (!/^[0-9a-f]{24}$/.test(idReceta)) return siguiente(true);
+
+        const { foto } = peticion.body;
+        if (typeof foto !== "string" || !foto) return siguiente(true);
+
+        const receta = await buscarRecetaPorId(idReceta);
+        if (!receta) return siguiente();
+
+        const acceso = await requiereAccesoFamilia(peticion, respuesta, receta.familia);
+        if (!acceso) return;
+        if (!acceso.fam) return siguiente();
+
+        if (!(await puedeModificarReceta(receta, peticion.idUsuario))) {
+            return respuesta.sendStatus(403);
+        }
+
+        if (!(receta.fotos || []).includes(foto)) return siguiente(true);
+
+        await actualizarReceta(idReceta, { portada: foto });
+
+        respuesta.json({ portada: foto });
+    } catch (e) {
+        console.log(e);
+        respuesta.status(500).json({ error: "error en el servidor" });
+    }
+});
+
 // sube (o sustituye) la foto de un paso concreto de la preparación. Campo
 // multipart "foto" (único). Se hace aparte de PUT /recetas/:idReceta porque
 // ese es JSON y esto necesita multipart; el resto de cambios del paso

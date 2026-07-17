@@ -5,7 +5,7 @@ import AvisoSugerencia from "../AvisoSugerencia"
 import Cargando from "../Cargando"
 import Contexto from "../Contexto"
 import ToastContexto from "../ToastContexto"
-import { obtenerMiembro, obtenerReceta, crearReceta, editarReceta, borrarReceta, subirFotosReceta, subirFotoPasoReceta, crearSugerencia, urlFoto } from "../api"
+import { obtenerMiembro, obtenerReceta, crearReceta, editarReceta, borrarReceta, subirFotosReceta, quitarFotoReceta, cambiarPortadaReceta, subirFotoPasoReceta, crearSugerencia, urlFoto } from "../api"
 
 // espera antes de ejecutar de verdad el borrado, para dar tiempo a deshacer
 const retrasoBorradoMs = 4000
@@ -114,6 +114,25 @@ function CrearReceta({ modoEdicion = false }){
 
     function quitarFotoPaso(indice){
         setPasos(pasos.map( (p,i) => i === indice ? { ...p, foto : null, archivoNuevo : null } : p ))
+    }
+
+    // portada/quitar sobre fotos YA guardadas: se aplican al momento (no
+    // esperan a "Guardar cambios"), a diferencia de las fotos nuevas
+    function hacerPortadaExistente(foto){
+        if(foto === (portadaExistente || fotosExistentes[0])) return
+        cambiarPortadaReceta(idReceta,foto,token)
+            .then(() => setPortadaExistente(foto))
+            .catch(() => mostrarToast("No se ha podido cambiar la portada", null))
+    }
+
+    function quitarFotoExistente(foto){
+        quitarFotoReceta(idReceta,foto,token)
+            .then(() => {
+                let quedan = fotosExistentes.filter( f => f !== foto )
+                setFotosExistentes(quedan)
+                if(portadaExistente === foto) setPortadaExistente(quedan[0] || null)
+            })
+            .catch(() => mostrarToast("No se ha podido quitar la foto", null))
     }
 
     function elegirArchivos(evento){
@@ -327,7 +346,7 @@ function CrearReceta({ modoEdicion = false }){
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-lg">Fotos</h2>
-                                <p className="text-xs text-grey">Toca una nueva para hacerla portada</p>
+                                <p className="text-xs text-grey">Toca una para hacerla portada</p>
                             </div>
                             {
                                 (fotosExistentes.length > 0 || archivos.length > 0) &&
@@ -338,12 +357,21 @@ function CrearReceta({ modoEdicion = false }){
                                                 <img
                                                     src={urlFoto(foto)}
                                                     alt=""
-                                                    className="w-full h-24 object-cover rounded-xl opacity-80"
+                                                    onClick={ () => hacerPortadaExistente(foto) }
+                                                    className={`w-full h-24 object-cover rounded-xl cursor-pointer ${foto === (portadaExistente || fotosExistentes[0]) ? "ring-2 ring-accent" : "opacity-80 hover:opacity-100"}`}
                                                 />
                                                 {
                                                     foto === (portadaExistente || fotosExistentes[0]) &&
                                                     <span className="absolute bottom-1 left-1 bg-accent text-primary text-[10px] px-1.5 py-0.5 rounded-full">Portada</span>
                                                 }
+                                                <button
+                                                    type="button"
+                                                    onClick={ () => quitarFotoExistente(foto) }
+                                                    aria-label="Quitar foto"
+                                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-secondary/70 text-primary text-xs flex items-center justify-center"
+                                                >
+                                                    ✕
+                                                </button>
                                             </div>
                                         )
                                     }

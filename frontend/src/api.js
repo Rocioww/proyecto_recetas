@@ -160,6 +160,24 @@ export function subirFotosReceta(idReceta,formData,token){
     })
 }
 
+// quita una foto ya guardada de la receta
+export function quitarFotoReceta(idReceta,foto,token){
+    return peticion(`/recetas/${idReceta}/fotos`,{
+        method : "DELETE",
+        body : JSON.stringify({ foto }),
+        headers : { authorization : `Bearer ${token}` }
+    })
+}
+
+// hace portada una foto que ya estaba guardada en la receta
+export function cambiarPortadaReceta(idReceta,foto,token){
+    return peticion(`/recetas/${idReceta}/portada`,{
+        method : "PUT",
+        body : JSON.stringify({ foto }),
+        headers : { authorization : `Bearer ${token}` }
+    })
+}
+
 // foto (opcional) de un paso concreto de la preparación; "indice" es la
 // posición del paso dentro del array ya guardado en el servidor
 export function subirFotoPasoReceta(idReceta,indice,formData,token){
