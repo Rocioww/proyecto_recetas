@@ -39,6 +39,9 @@ function CrearReceta({ modoEdicion = false }){
     // imágenes seleccionadas (objetos File) y cuál será la portada
     let [archivos,setArchivos] = useState([])
     let [portadaIndice,setPortadaIndice] = useState(0)
+    // fotos ya guardadas en el servidor (solo en edición, no se suben de nuevo)
+    let [fotosExistentes,setFotosExistentes] = useState([])
+    let [portadaExistente,setPortadaExistente] = useState(null)
     let [tiempo,setTiempo] = useState("")
     let [categoria,setCategoria] = useState("primero")
     let [temporada,setTemporada] = useState("todo el año")
@@ -68,6 +71,11 @@ function CrearReceta({ modoEdicion = false }){
                 setTiempo(r.tiempoMinutos != null ? String(r.tiempoMinutos) : "")
                 setCategoria(r.categoria || "primero")
                 setTemporada(r.temporada || "todo el año")
+                setFotosExistentes(r.fotos || [])
+                setPortadaExistente(r.portada || null)
+                // si ya hay fotos guardadas, por defecto NO tocar la portada al
+                // subir alguna nueva (null = "mantener la actual" en el envío)
+                if((r.fotos || []).length > 0) setPortadaIndice(null)
                 setIngredientes((r.ingredientes && r.ingredientes.length > 0)
                     ? r.ingredientes.map( ing => ({ cantidad : ing.cantidad != null ? String(ing.cantidad) : "", unidad : ing.unidad || "", nombre : ing.nombre || "" }))
                     : [{ cantidad : "", unidad : "", nombre : "" }])
@@ -109,17 +117,20 @@ function CrearReceta({ modoEdicion = false }){
     }
 
     function elegirArchivos(evento){
-        let nuevos = [...archivos, ...Array.from(evento.target.files)].slice(0,6)
+        let espacioDisponible = Math.max(0, 6 - fotosExistentes.length)
+        let nuevos = [...archivos, ...Array.from(evento.target.files)].slice(0,espacioDisponible)
         setArchivos(nuevos)
-        if(portadaIndice >= nuevos.length) setPortadaIndice(0)
+        if(portadaIndice !== null && portadaIndice >= nuevos.length){
+            setPortadaIndice(fotosExistentes.length > 0 ? null : 0)
+        }
         evento.target.value = "" // permite volver a elegir el mismo archivo
     }
 
     function quitarArchivo(indice){
         let nuevos = archivos.filter( (a,i) => i !== indice )
         setArchivos(nuevos)
-        if(portadaIndice === indice) setPortadaIndice(0)
-        else if(portadaIndice > indice) setPortadaIndice(portadaIndice - 1)
+        if(portadaIndice === indice) setPortadaIndice(fotosExistentes.length > 0 ? null : 0)
+        else if(portadaIndice !== null && portadaIndice > indice) setPortadaIndice(portadaIndice - 1)
     }
 
     function manejarEnviar(evento){
@@ -211,7 +222,7 @@ function CrearReceta({ modoEdicion = false }){
                     : (() => {
                         let formData = new FormData()
                         archivos.forEach( archivo => formData.append("fotos",archivo) )
-                        formData.append("portadaIndice",portadaIndice)
+                        if(portadaIndice !== null) formData.append("portadaIndice",portadaIndice)
                         return subirFotosReceta(idReceta,formData,token)
                             .catch(() => mostrarToast("La receta se ha guardado, pero no se han podido subir las fotos", null))
                     })()
@@ -234,7 +245,7 @@ function CrearReceta({ modoEdicion = false }){
                     : (() => {
                         let formData = new FormData()
                         archivos.forEach( archivo => formData.append("fotos",archivo) )
-                        formData.append("portadaIndice",portadaIndice)
+                        if(portadaIndice !== null) formData.append("portadaIndice",portadaIndice)
                         return subirFotosReceta(_id,formData,token)
                             .catch(() => mostrarToast("La receta se ha guardado, pero no se han podido subir las fotos", null))
                     })()
@@ -316,14 +327,29 @@ function CrearReceta({ modoEdicion = false }){
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-lg">Fotos</h2>
-                                <p className="text-xs text-grey">Toca una para hacerla portada</p>
+                                <p className="text-xs text-grey">Toca una nueva para hacerla portada</p>
                             </div>
                             {
-                                archivos.length > 0 &&
+                                (fotosExistentes.length > 0 || archivos.length > 0) &&
                                 <div className="grid grid-cols-3 gap-2">
                                     {
+                                        fotosExistentes.map( (foto,i) =>
+                                            <div key={`existente-${i}`} className="relative">
+                                                <img
+                                                    src={urlFoto(foto)}
+                                                    alt=""
+                                                    className="w-full h-24 object-cover rounded-xl opacity-80"
+                                                />
+                                                {
+                                                    foto === (portadaExistente || fotosExistentes[0]) &&
+                                                    <span className="absolute bottom-1 left-1 bg-accent text-primary text-[10px] px-1.5 py-0.5 rounded-full">Portada</span>
+                                                }
+                                            </div>
+                                        )
+                                    }
+                                    {
                                         archivos.map( (archivo,i) =>
-                                            <div key={i} className="relative">
+                                            <div key={`nueva-${i}`} className="relative">
                                                 <img
                                                     src={URL.createObjectURL(archivo)}
                                                     alt=""
@@ -348,7 +374,7 @@ function CrearReceta({ modoEdicion = false }){
                                 </div>
                             }
                             {
-                                archivos.length < 6 &&
+                                fotosExistentes.length + archivos.length < 6 &&
                                 <label className="self-start text-sm text-accent hover:underline cursor-pointer">
                                     + Añadir fotos
                                     <input type="file" accept="image/*" multiple onChange={elegirArchivos} className="hidden" />
