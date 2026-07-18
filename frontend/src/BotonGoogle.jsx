@@ -30,14 +30,20 @@ function BotonGoogle(){
         let intentos = 0
         let inicializado = false
         let observador = null
+        let anchoPintado = null
 
         // el botón de Google solo acepta un ancho en píxeles (no "100%"), así que
         // hay que medir el contenedor y volver a pintarlo si su ancho cambia
-        // (primer layout, o si la ventana cambia de tamaño)
+        // (primer layout, o si la ventana cambia de tamaño). En móvil, mostrar
+        // u ocultar la barra de direcciones dispara ResizeObserver sin que el
+        // ancho cambie realmente: repintar en cada aviso reinserta el iframe de
+        // Google y se ve como un parpadeo. Se evita repintando solo si el ancho
+        // medido es distinto del último ya pintado.
         function pintarBoton(){
             if(!contenedorRef.current) return
             let ancho = contenedorRef.current.offsetWidth
-            if(!ancho) return
+            if(!ancho || ancho === anchoPintado) return
+            anchoPintado = ancho
 
             contenedorRef.current.innerHTML = ""
             window.google.accounts.id.renderButton(contenedorRef.current, {

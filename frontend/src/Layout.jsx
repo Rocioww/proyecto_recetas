@@ -95,7 +95,7 @@ function Layout(){
         return <Navigate to="/login"/>
     }
 
-    return  <div className="h-screen flex flex-col">
+    return  <div className="h-dvh flex flex-col">
 
                 <header className="h-[70px] shrink-0 relative flex items-center justify-between px-4 border-b border-grey/20 bg-primary">
 

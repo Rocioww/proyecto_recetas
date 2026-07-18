@@ -326,7 +326,7 @@ function Arbol(){
         // del árbol: puede que me hayan vinculado a otra card cualquiera);
         // si no estoy vinculado a nadie (soy espectador o dueño sin card
         // propia), centra en la raíz como antes
-        let miObjetivo = miembros.find( m => m.esYo ) || miembros.find( m => m.idReferencia === null )
+        let miObjetivo = miembros.find( m => m.esYo || m.parentesco === "yo" ) || miembros.find( m => m.idReferencia === null )
         if(!miObjetivo) return
 
         let visibles = miembros.filter(m => !(m.esPlaceholder && m.relacionDirecta === "pareja"))
@@ -784,7 +784,11 @@ function Arbol(){
 
                                 let esRaiz = miembro.idReferencia === null
                                 let etiqueta = etiquetaParentesco(miembro, puedeEscribir)
-                                let mostrarEtiqueta = miembro.esYo || etiqueta
+                                // esYo es el flag de backend, pero por si alguna vez no coincidiera
+                                // con el parentesco recalculado ("yo"), se comprueban los dos para
+                                // que la propia tarjeta siempre se lea "Tú" y nunca quede sin marcar
+                                let esTu = miembro.esYo || miembro.parentesco === "yo"
+                                let mostrarEtiqueta = esTu || etiqueta
 
                                 return  <div key={miembro._id} className="absolute" style={{ left : pos.x, top : pos.y, width : anchoTarjetaPx }}>
 
@@ -805,7 +809,7 @@ function Arbol(){
                                                             className="border-2 border-dashed border-grey/20 bg-grey/5 rounded-2xl opacity-40"
                                                         ></div>
                                                   )
-                                                : <Link to={`/miembros/${miembro._id}`} style={{ height : altoTarjetaPx }} className={`bg-white rounded-2xl shadow hover:shadow-md transition-shadow overflow-hidden flex flex-col ${miembro.esYo ? "ring-2 ring-accent" : ""}`}>
+                                                : <Link to={`/miembros/${miembro._id}`} style={{ height : altoTarjetaPx }} className={`bg-white rounded-2xl shadow hover:shadow-md transition-shadow overflow-hidden flex flex-col ${esTu ? "ring-2 ring-accent" : ""}`}>
                                                         <div className="w-full h-1/2 shrink-0 bg-accent2/20 flex items-center justify-center">
                                                             {
                                                                 miembro.foto
@@ -819,7 +823,7 @@ function Arbol(){
                                                             <p className="font-semibold text-sm leading-tight truncate w-full">{miembro.nombreReal}</p>
                                                             {
                                                                 mostrarEtiqueta &&
-                                                                <p className="text-[0.8rem] text-grey capitalize truncate w-full">{miembro.esYo ? "Tú" : etiqueta}</p>
+                                                                <p className="text-[0.8rem] text-grey capitalize truncate w-full">{esTu ? "Tú" : etiqueta}</p>
                                                             }
                                                             <p className={`text-[11px] text-grey ${mostrarEtiqueta ? "-translate-y-[3px]" : ""}`}>{miembro.numRecetas ?? 0} {miembro.numRecetas === 1 ? "receta" : "recetas"}</p>
                                                         </div>
