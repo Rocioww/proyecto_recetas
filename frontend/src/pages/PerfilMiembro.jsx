@@ -229,7 +229,7 @@ function PerfilMiembro(){
                     {
                         listaFiltrada.length === 0
                         ? <p className="text-sm text-grey text-center py-8">Aún no hay recetas atribuidas a esta persona.</p>
-                        : <ul className="grid grid-cols-[repeat(auto-fill,300px)] gap-4">
+                        : <ul className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,300px)] gap-4 justify-center">
                             {
                                 listaFiltrada.map( receta =>
                                     <li key={receta._id}>

@@ -212,7 +212,7 @@ function Favoritos(){
                                 {
                                     recetasFiltradas.length === 0
                                     ? <p className="text-sm text-grey text-center py-8">Ninguna receta favorita coincide con los filtros.</p>
-                                    : <ul className="w-full max-w-6xl grid grid-cols-[repeat(auto-fill,300px)] gap-4 justify-center">
+                                    : <ul className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,300px)] gap-4 justify-center">
                                 {
                                     recetasFiltradas.map( receta =>
                                         <li key={receta._id}>

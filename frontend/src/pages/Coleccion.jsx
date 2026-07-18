@@ -125,7 +125,7 @@ function Coleccion(){
                 {
                     coleccion.recetas.length === 0
                     ? <p className="text-sm text-grey">Esta colección está vacía. Guarda recetas en ella desde el icono de guardar de cualquier receta.</p>
-                    : <ul className="grid grid-cols-[repeat(auto-fill,300px)] gap-4">
+                    : <ul className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,300px)] gap-4 justify-center">
                         {
                             coleccion.recetas.map( receta =>
                                 <li key={receta._id}>

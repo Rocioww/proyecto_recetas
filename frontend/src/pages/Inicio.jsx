@@ -157,7 +157,7 @@ function Inicio(){
                     datos.deTemporada.length > 0 &&
                     <section className="flex flex-col gap-3">
                         <h2 className="text-xl">Un día como hoy tu familia cocinó</h2>
-                        <div className="grid grid-cols-[repeat(auto-fill,300px)] gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,300px)] gap-4 justify-center">
                             {
                                 // /inicio manda el autor en "autor" (no "autorInfo" como el
                                 // resto de listados, porque aquí también lleva esViewer para
@@ -188,7 +188,7 @@ function Inicio(){
                             ? <Cargando chico/>
                             : resultadosFiltrados.length === 0
                                 ? <p className="text-sm text-grey text-center py-12">Ninguna receta coincide con tu búsqueda.</p>
-                                : <ul className="grid grid-cols-[repeat(auto-fill,300px)] gap-4 justify-center">
+                                : <ul className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,300px)] gap-4 justify-center">
                                     {
                                         resultadosFiltrados.map( receta =>
                                             <li key={receta._id}>

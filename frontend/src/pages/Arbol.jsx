@@ -601,6 +601,44 @@ function Arbol(){
     function zoomOut(){ aplicarZoom(zoom - 0.15) }
     function ajustarZoomCompleto(){ aplicarZoom(zoomMin) }
 
+    // el margen alrededor del lienzo (para poder centrar "yo" en pantalla)
+    // no tiene ningún contenido: sin límites, arrastrando el lienzo (sobre
+    // todo con el dedo en móvil) es fácil perder el árbol de vista del
+    // todo y quedarse mirando una pantalla en blanco sin saber hacia dónde
+    // volver. Se reengancha el scroll cada vez que se sale de la zona en
+    // la que sigue habiendo, como mínimo, una tarjeta de margen visible.
+    function limitarValor(valor, minimo, maximo){
+        if(minimo > maximo) return valor // el árbol cabe entero: no hace falta acotar
+        return Math.min(Math.max(valor, minimo), maximo)
+    }
+
+    function manejarScrollArbol(){
+        let contenedor = contenedorRef.current
+        if(!contenedor) return
+
+        let arbolIzquierda = margen * zoom
+        let arbolArriba = margen * zoom
+        let arbolDerecha = (margen + anchoTotal) * zoom
+        let arbolAbajo = (margen + altoTotal) * zoom
+
+        let minVisibleX = Math.min(anchoTarjetaPx, contenedor.clientWidth / 2)
+        let minVisibleY = Math.min(altoTarjetaPx, contenedor.clientHeight / 2)
+
+        let scrollLeft = limitarValor(
+            contenedor.scrollLeft,
+            arbolIzquierda - contenedor.clientWidth + minVisibleX,
+            arbolDerecha - minVisibleX,
+        )
+        let scrollTop = limitarValor(
+            contenedor.scrollTop,
+            arbolArriba - contenedor.clientHeight + minVisibleY,
+            arbolAbajo - minVisibleY,
+        )
+
+        if(scrollLeft !== contenedor.scrollLeft) contenedor.scrollLeft = scrollLeft
+        if(scrollTop !== contenedor.scrollTop) contenedor.scrollTop = scrollTop
+    }
+
     // atajos de teclado (+/- para zoom, 0 para verlo completo) y Ctrl/Cmd +
     // rueda del ratón: solo mientras se está viendo la pestaña del árbol
     useEffect(() => {
@@ -743,6 +781,7 @@ function Arbol(){
                     ref={asignarContenedor}
                     onMouseDown={iniciarArrastre}
                     onWheel={manejarRuedaZoom}
+                    onScroll={manejarScrollArbol}
                     className={`flex-1 overflow-auto sin-scrollbar cursor-grab active:cursor-grabbing select-none ${vista === "arbol" ? "" : "hidden"}`}
                 >
                     <div style={{ width : (anchoTotal + 2 * margen) * zoom, height : (altoTotal + 2 * margen) * zoom }}>
@@ -976,7 +1015,7 @@ function Arbol(){
                                     {/* cards de ancho fijo 300px; la rejilla añade tantas columnas
                                         como quepan y, al reducir el viewport, va quitando columnas
                                         hasta quedar en una sola */}
-                                    <ul className="w-full grid grid-cols-[repeat(auto-fill,300px)] gap-4 justify-center">
+                                    <ul className="w-full grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,300px)] gap-4 justify-center">
                                         {
                                             recetas.map( receta =>
                                                 <li key={receta._id}>
