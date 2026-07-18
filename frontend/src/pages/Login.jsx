@@ -51,7 +51,7 @@ function Login(){
 
     if(token) return <Navigate to={destino}/>
 
-    return  <section className="min-h-screen flex items-center justify-center p-4">
+    return  <section className="min-h-dvh flex items-center justify-center p-4">
                 <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center gap-4">
                     <img src={logo} alt="Legado Culinario" className="h-16 w-auto max-w-full object-contain" />
 
