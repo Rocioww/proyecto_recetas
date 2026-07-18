@@ -1400,8 +1400,19 @@ servidor.get("/miembro/:idMiembro", async (peticion, respuesta, siguiente) => {
         const miembrosFamilia = await leerMiembros(miembro.familia);
         const tieneDescendientes = miembrosFamilia.some(m => m.idReferencia === idMiembro);
 
+        // el parentesco guardado es relativo a la raíz original del árbol;
+        // aquí se recalcula relativo a quien lo está viendo, igual que en
+        // GET /miembros/:idFamilia (si no, alguien vinculado a su propia
+        // tarjeta vería su parentesco con la raíz en vez de "Tú"/"yo")
+        const miMiembro = miembrosFamilia.find(m => m.usuario === peticion.idUsuario) || null;
+        const parentesco = miMiembro
+            ? calcularParentescoEntre(miMiembro, miembro, miembrosFamilia)
+            : miembro.parentesco;
+
         respuesta.json({
             ...miembro,
+            parentesco,
+            esYo: miembro.usuario === peticion.idUsuario,
             foto: await fotoDeMiembro(miembro),
             nombreFamilia: acceso.fam.nombre,
             nombreUsuarioVinculado,

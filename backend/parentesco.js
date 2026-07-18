@@ -310,13 +310,14 @@ export function calcularParentescoEntre(origen, destino, miembros) {
 
     // posición (0,0) pero NO es la misma persona (ya se descartó arriba) ni
     // la pareja directa (ya descartado justo encima): solo se llega aquí
-    // cruzando MÁS DE UN enlace de pareja/co-progenitor en el camino
-    // (p.ej. origen -> su hijo/a -> pareja del hijo/a -> padre de esa
-    // pareja). calcularParentescoConsanguineo(0,0) devolvería "yo", que
-    // aquí sería incorrecto -un "yo" que no es uno mismo-: la relación real
-    // es la de "consuegro/a" (el padre/madre del yerno o nuera de alguien)
+    // cruzando MÁS DE UN enlace de pareja/co-progenitor en el camino (p.ej.
+    // origen -> su hijo/a -> pareja del hijo/a -> padre de esa pareja: el
+    // término real sería "consuegro/a", pero es una relación política sin
+    // equivalente de sangre -viene de una familia distinta por completo-,
+    // así que, siguiendo el mismo criterio de no usar términos políticos,
+    // se nombra igual que la pareja directa en esa misma posición
     if (pos.arriba === 0 && pos.abajo === 0) {
-        return formaGenero("consuegro", "consuegra", "consuegrx", destino.genero);
+        return nombrePolitico(pos, destino.genero);
     }
 
     // resto de casos político-al-final (p.ej. "tío político", o la pareja
