@@ -150,7 +150,7 @@ function Layout(){
                 />
 
                 {/* menú inferior tipo app: solo por debajo de 992px */}
-                <nav className="lg:hidden h-16 shrink-0 flex items-center justify-evenly border-t border-grey/20 bg-primary">
+                <nav className="lg:hidden h-16 shrink-0 flex items-center justify-center gap-x-14 border-t border-grey/20 bg-primary">
                     {
                         enlaces.map( enlace =>
                             <NavLink
